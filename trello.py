@@ -12,7 +12,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS lists(title TEXT, o INTEGER UNIQUE PRIMA
 c.execute('''CREATE TABLE IF NOT EXISTS cards(title TEXT, description TEXT, listid INTEGER NOT NULL UNIQUE, id INTEGER PRIMARY KEY)''')
 
 #: route to list URL
-@trello.route('/list',methods = ['GET','POST'])
+@trello.route('/list',methods = ['GET'])
 def addlist():
   #: pull up addList html, which has input boxes 
   render_template('addList.html') 
@@ -26,7 +26,7 @@ def addlist():
   #: add list to lists table
   conn.commit()
   conn.close()
-  return jsonify({'status code: 200', 'list': list}), 201
+  return jsonify({'status code': 200})
   #: return list to screen
 
 #: route to card URL
@@ -45,7 +45,7 @@ def addcard():
   #: add card to cards table
   conn.commit()
   conn.close()
-  return jsonify({'status code: 200', 'card': card}), 201
+  return jsonify({'status code': 200})
   #: return card to screen
 
 #: route to card/cardID URL
@@ -58,7 +58,7 @@ def getCard(card_id):
     for row in c.fetchall():
       #: if it does, return that card
       if row[3] == card_id:
-        return jsonify({'status code: 200', 'card': {'title': row[0], 'description': row[1], 'listid': row[2], 'id': row[3]}})
+        return jsonify({'status code': 200, 'card': {'title': row[0], 'description': row[1], 'listid': row[2], 'id': row[3]}})
     #: otherwise, return error
     return make_response(jsonify({'error': 'Not found'}), 404)
   else:
@@ -68,7 +68,7 @@ def getCard(card_id):
         c.execute('''DELETE FROM cards WHERE id = ?''', (card_id))
         conn.commit()
         conn.close()
-        return jsonify({'card': {'status code: 200', 'title': row[0], 'description': row[1], 'listid': row[2], 'id': row[3]}})
+        return jsonify({'card': {'status code': 200, 'title': row[0], 'description': row[1], 'listid': row[2], 'id': row[3]}})
     return make_response(jsonify({'error': 'Not found'}), 404) 
 
 #: route to list/listID URL
@@ -81,7 +81,7 @@ def getList(list_id):
     for row in c.fetchall():
       #: if it does, return that list
       if row[2] == list_id:
-        return jsonify({'status code: 200', 'list': {'title': row[0], 'order': row[1], 'id': row[2]}})
+        return jsonify({'status code': 200, 'list': {'title': row[0], 'order': row[1], 'id': row[2]}})
     #: otherwise, return error
     return make_response(jsonify({'error': 'Not found'}), 404)
   else:
@@ -89,9 +89,14 @@ def getList(list_id):
       if row[2] == list_id:
         #: delete that row from the table
         c.execute('''DELETE FROM lists WHERE id = ?''', (list_id))
+        #: delete all cards that belong to this list
+        c.execute('''SELECT title, description, listid, id FROM cards''')
+        for row in c.fetchall():
+          if row[2] == list_id:
+            c.execute('''DELETE FROM cards WHERE listid = ?''', (list_id))
         conn.commit()
         conn.close()
-        return jsonify({'status code: 200', 'list': {'title': row[0], 'order': row[1], 'id': row[2]}})
+        return jsonify({'status code: 200'})
     return make_response(jsonify({'error': 'Not found'}), 404) 
 
 #: route to editlist/listID URL
@@ -103,15 +108,15 @@ def editList(list_id):
   title = request.form['newtitle']
   neworder = request.form['order']
   #: see if list_id exists in the table
-    for row in c.fetchall():
+  for row in c.fetchall():
       #: if it does, update and return that list
       if row[2] == list_id:
         #: update lists table
         c.execute('''UPDATE lists SET order = ? WHERE title = ?''', (neworder, title))
         conn.commit()
-        return jsonify({'status code: 200', 'list': {'title': row[0], 'order': row[1], 'id': row[2]}})
-    #: otherwise, return error
-    return make_response(jsonify({'error': 'Not found'}), 404)
+        return jsonify({'status code': 200, 'list': {'title': row[0], 'order': row[1], 'id': row[2]}})
+  #: otherwise, return error
+  return make_response(jsonify({'error': 'Not found'}), 404)
 
 if __name__=='__main__':
     trello.run(debug = True)
