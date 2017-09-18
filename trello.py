@@ -19,7 +19,7 @@ def addlist():
   list = {
     'title': request.form['title'],
     'id': 1233+o,
-    'o': o
+    'o': o #: not sure the difference in purpose between order and id
   }
   #: create list
   c.execute("INSERT INTO lists VALUES (title, o, id)")
