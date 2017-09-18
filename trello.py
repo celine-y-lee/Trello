@@ -12,7 +12,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS lists(title TEXT, o INTEGER UNIQUE PRIMA
 c.execute('''CREATE TABLE IF NOT EXISTS cards(title TEXT, description TEXT, listid INTEGER NOT NULL UNIQUE, id INTEGER PRIMARY KEY)''')
 
 #: route to list URL
-@trello.route('/list',methods = ['GET'])
+@trello.route('/list',methods = ['GET', 'POST'])
 def addlist():
   #: pull up addList html, which has input boxes 
   render_template('addList.html') 
